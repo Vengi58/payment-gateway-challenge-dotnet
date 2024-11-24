@@ -1,8 +1,12 @@
-﻿using MediatR;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices;
+
+using MediatR;
 
 using Microsoft.AspNetCore.Mvc;
 
 using PaymentGateway.Api.Commands;
+using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Services;
 
@@ -24,14 +28,23 @@ public class PaymentsController : Controller
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
     {
-        var payment = _paymentsRepository.Get(id);
+        var payment = _paymentsRepository.GetPaymentById(id);
 
         return new OkObjectResult(payment);
     }
 
     [HttpPost()]
-    public async Task<ActionResult<PostPaymentResponse?>> CreatePaymentAsync([FromBody] CreatePaymentCommand createPaymentCommand, [FromHeader(Name = "idempotency-key")] string idKey, CancellationToken cancellationToken)
+    public async Task<ActionResult<PostPaymentResponse?>> CreatePaymentAsync([FromBody] PostPaymentRequest postPaymentRequest, [Optional][FromHeader(Name = "idempotency-key")] Guid? idempotencyKey, CancellationToken cancellationToken)
     {
+        CreatePaymentCommand createPaymentCommand = new(
+            idempotencyKey ?? Guid.NewGuid(),
+            postPaymentRequest.Currency,
+            postPaymentRequest.Amount,
+            postPaymentRequest.CardNumber,
+            postPaymentRequest.ExpiryMonth,
+            postPaymentRequest.ExpiryYear,
+            postPaymentRequest.Cvv);
+
         var paymentDetail = await _mediator.Send(createPaymentCommand, cancellationToken);
         return paymentDetail;
     }

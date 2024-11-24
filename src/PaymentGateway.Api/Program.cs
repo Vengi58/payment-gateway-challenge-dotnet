@@ -7,6 +7,7 @@ using MediatR;
 using PaymentGateway.Api.Behaviors;
 using PaymentGateway.Api.Middleware;
 using PaymentGateway.Api.Services;
+using PaymentGateway.Api.Services.BankSimulator;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 builder.Services.AddControllers();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+builder.Services.AddSingleton<IPaymentRepository, PaymentsRepository>();
+builder.Services.AddSingleton<IBankSimulator, BankSimulator>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
