@@ -1,4 +1,8 @@
-﻿namespace PaymentGateway.Api.Services.BankSimulator
+﻿using System.Net.Http.Json;
+
+using PaymentGateway.Api.Services.BankSimulator;
+
+namespace PaymentGateway.Services.BankSimulator
 {
     public class BankSimulator : IBankSimulator
     {

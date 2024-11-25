@@ -1,12 +1,14 @@
 ﻿using FluentValidation;
-using PaymentGateway.Api.Commands;
+
+using PaymentGateway.Application.Payments.Commands.CreatePayment;
+using PaymentGateway.Domain.Enums;
+
 using System.Text.RegularExpressions;
 
-namespace PaymentGateway.Api.Behaviors
+namespace PaymentGateway.Application.Behaviors
 {
     public class CreatePaymentCommandValidator : AbstractValidator<CreatePaymentCommand>
     {
-        private List<string> _supportedCurrencySymbols = ["GBP", "USD", "EUR"];
         private const string CardNumberPattern = "^(?:4[0-9]{12}(?:[0-9]{3})?" + //Visa
                 "|5[1-5][0-9]{14}" + //Mastercard
                 "|3[47][0-9]{13})$" +//Amex
@@ -29,12 +31,14 @@ namespace PaymentGateway.Api.Behaviors
                 .Must(n => Regex.IsMatch(n.ToString(), MonthPattern, RegexOptions.IgnoreCase))
                 .WithMessage("Incorrect Card Expiration Month");
 
-            RuleFor(command => new DateTime(command.ExpiryYear, command.ExpiryMonth, 1))
-                .GreaterThanOrEqualTo(DateTime.Now)
-                .WithMessage("Incorrect Card Expiration Time");
+            RuleFor(command => Tuple.Create(command.ExpiryYear, command.ExpiryMonth ))
+                .Must(n => Regex.IsMatch(n.Item1.ToString(), YearPattern, RegexOptions.IgnoreCase) &&
+                    Regex.IsMatch(n.Item2.ToString(), MonthPattern, RegexOptions.IgnoreCase) &&
+                    new DateTime(n.Item1, n.Item2, 1) > DateTime.Now)
+                .WithMessage("Card expired");
 
             RuleFor(command => command.Currency)
-                .Must(n => _supportedCurrencySymbols.Contains(n.ToUpper()))
+                .Must(n => Enum.TryParse(n.ToUpper(), out Currencies currency))
                 .WithMessage("Invalid currency");
 
             RuleFor(command => command.Amount)

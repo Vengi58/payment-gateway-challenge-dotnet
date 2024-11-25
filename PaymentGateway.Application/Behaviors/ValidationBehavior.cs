@@ -2,7 +2,7 @@
 
 using MediatR;
 
-namespace PaymentGateway.Api.Behaviors
+namespace PaymentGateway.Application.Behaviors
 {
     public sealed class ValidationBehavior<TRequest, TResponse>
         : IPipelineBehavior<TRequest, TResponse>

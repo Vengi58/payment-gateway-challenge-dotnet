@@ -1,10 +1,6 @@
 ﻿using MediatR;
 
-using PaymentGateway.Api.Models.Responses;
-
-namespace PaymentGateway.Api.Commands
+namespace PaymentGateway.Application.Payments.Commands.CreatePayment
 {
-    public sealed record CreatePaymentCommand(Guid Id, string Currency, int Amount, string CardNumber, int ExpiryMonth, int ExpiryYear, int Cvv) : IRequest<PostPaymentResponse>
-    {
-    }
+    public sealed record CreatePaymentCommand(Guid? Id, string Currency, int Amount, string CardNumber, int ExpiryMonth, int ExpiryYear, int Cvv) : IRequest<CreatePaymentResponse> { }
 }

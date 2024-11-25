@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace PaymentGateway.Api.Services
+namespace PaymentGateway.Services.Encryption
 {
     public class RsaCryptoService : ICryptoService
     {
@@ -14,7 +14,7 @@ namespace PaymentGateway.Api.Services
 
         public string Decrypt(byte[] data)
         {
-            var decryptedBytes =  rsa.Decrypt(data, RSAEncryptionPadding.Pkcs1);
+            var decryptedBytes = rsa.Decrypt(data, RSAEncryptionPadding.Pkcs1);
             return Encoding.UTF8.GetString(decryptedBytes);
         }
 

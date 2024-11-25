@@ -1,7 +1,10 @@
 ﻿using MediatR;
+
+using Microsoft.Extensions.Logging;
+
 using System.Diagnostics;
 
-namespace PaymentGateway.Api.Behaviors
+namespace PaymentGateway.Application.Behaviors
 {
     public sealed class LoggingBehavior<TRequest, TResponse>
         : IPipelineBehavior<TRequest, TResponse>

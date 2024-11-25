@@ -1,49 +1,54 @@
 ﻿
 using MediatR;
-
-using PaymentGateway.Api.Commands;
 using PaymentGateway.Api.Models;
-using PaymentGateway.Api.Models.Responses;
-using PaymentGateway.Api.Services;
 using PaymentGateway.Api.Services.BankSimulator;
+using PaymentGateway.Domain.Models;
+using PaymentGateway.Persistance.Repository;
 
-namespace PaymentGateway.Api.Handlers
+namespace PaymentGateway.Application.Payments.Commands.CreatePayment
 {
-    public class CreatePaymentHandler(IPaymentRepository paymentRepository, IBankSimulator bankSimulator, ICryptoService cryptoService) 
-        : IRequestHandler<CreatePaymentCommand, PostPaymentResponse>
+    public class CreatePaymentHandler(IPaymentRepository paymentRepository, IBankSimulator bankSimulator)
+        : IRequestHandler<CreatePaymentCommand, CreatePaymentResponse>
     {
         private readonly IPaymentRepository _paymentRepository = paymentRepository;
         private readonly IBankSimulator _bankSimulator = bankSimulator;
-        private readonly ICryptoService _cryptoService = cryptoService;
 
-        public async Task<PostPaymentResponse> Handle(CreatePaymentCommand createPaymentCommand, CancellationToken cancellationToken)
+        public async Task<CreatePaymentResponse> Handle(CreatePaymentCommand createPaymentCommand, CancellationToken cancellationToken)
         {
-            //var encryptedCardNumber = _cryptoService.Encrypt(createPaymentCommand.CardNumber);
-            //var decryptedCardNumber = _cryptoService.Decrypt(encryptedCardNumber);
+            CreatePaymentResponse response;
 
-            PostPaymentResponse response;
-
-            var payment = _paymentRepository.GetPaymentById(createPaymentCommand.Id);
-
-            if (payment != null)
+            if (createPaymentCommand.Id != null)
             {
-                response = new()
+                var payment = _paymentRepository.GetPaymentById(createPaymentCommand.Id);
+
+                if (payment.Item1 != null && payment.Item2 != null)
                 {
-                    Status = Models.PaymentStatus.Authorized,
-                    CardNumberLastFour = payment.CardNumber,
-                    ExpiryMonth = payment.ExpiryMonth,
-                    ExpiryYear = payment.ExpiryYear,
-                    Amount = payment.Amount,
-                    Currency = payment.Currency,
-                    Id = payment.Id
-                };
-                return await Task.FromResult(response);
+                    response = new()
+                    {
+                        Status = PaymentStatus.Authorized,
+                        PaymentId = (Guid)createPaymentCommand.Id
+                    };
+                    return await Task.FromResult(response);
+                }
             }
             
 
-            _paymentRepository.AddPayment(createPaymentCommand);
+            Guid paymentId = _paymentRepository.CreatePayment(
+                new CardDetails() { 
+                    CardNumber = createPaymentCommand.CardNumber,
+                    Cvv = createPaymentCommand.Cvv,
+                    ExpiryMonth = createPaymentCommand.ExpiryMonth,
+                    ExpiryYear = createPaymentCommand.ExpiryYear
+                },
+                new PaymentDetails()
+                {
+                    Amount = createPaymentCommand.Amount,
+                    Currency = createPaymentCommand.Currency,
+                    Id = createPaymentCommand.Id
+                });
 
             var padding = createPaymentCommand.ExpiryMonth < 10 ? "0" : string.Empty;
+
             var bankPaymentResult = await _bankSimulator.PostPayment(new PostBankPaymentRequest(
                 createPaymentCommand.CardNumber,
                 $"{padding}{createPaymentCommand.ExpiryMonth}/{createPaymentCommand.ExpiryYear}", 
@@ -54,12 +59,7 @@ namespace PaymentGateway.Api.Handlers
             response = new()
             {
                 Status = bankPaymentResult.authorized ? PaymentStatus.Authorized : PaymentStatus.Declined,
-                CardNumberLastFour = createPaymentCommand.CardNumber,
-                ExpiryMonth = createPaymentCommand.ExpiryMonth,
-                ExpiryYear = createPaymentCommand.ExpiryYear,
-                Amount = createPaymentCommand.Amount,
-                Currency = createPaymentCommand.Currency,
-                Id = createPaymentCommand.Id
+                PaymentId = paymentId
             };
             return await Task.FromResult(response);
         }

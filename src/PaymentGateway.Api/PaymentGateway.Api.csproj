@@ -9,8 +9,14 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\PaymentGateway.Application\PaymentGateway.Application.csproj" />
+    <ProjectReference Include="..\..\PaymentGateway.Services\PaymentGateway.Services.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Api.Services
+﻿namespace PaymentGateway.Services.Encryption
 {
     public interface ICryptoService
     {

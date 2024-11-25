@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Api.Controllers;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Services;
+using PaymentGateway.Persistance.Repository;
+using PaymentGateway.Services.Encryption;
 
 namespace PaymentGateway.Api.Tests;
 
@@ -27,7 +29,7 @@ public class PaymentsControllerTests
             Currency = "GBP"
         };
 
-        var paymentsRepository = new PaymentsRepository();
+        var paymentsRepository = new PaymentsRepository(new RsaCryptoService());
         //paymentsRepository.AddPayment(payment);
 
         var webApplicationFactory = new WebApplicationFactory<PaymentsController>();
