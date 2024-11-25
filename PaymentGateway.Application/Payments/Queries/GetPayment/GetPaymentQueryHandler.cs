@@ -6,7 +6,7 @@ using PaymentGateway.Persistance.Repository;
 
 namespace PaymentGateway.Application.Payments.Queries.GetPayment
 {
-    internal class GetPaymentQueryHandler(IPaymentRepository paymentRepository) : IRequestHandler<GetPaymentQuery, GetPaymentResponse>
+    public class GetPaymentQueryHandler(IPaymentRepository paymentRepository) : IRequestHandler<GetPaymentQuery, GetPaymentResponse>
     {
         private readonly IPaymentRepository _paymentRepository = paymentRepository;
 

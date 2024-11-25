@@ -25,7 +25,7 @@ namespace PaymentGateway.Api.Tests;
 
 public class PaymentsControllerTests
 {
-    public Mock<IBankSimulator> BankSimulatorMock;
+    Mock<IBankSimulator> BankSimulatorMock;
     HttpClient client;
 
     public PaymentsControllerTests()
