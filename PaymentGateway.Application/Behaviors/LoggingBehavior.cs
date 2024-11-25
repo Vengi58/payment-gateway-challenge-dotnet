@@ -3,6 +3,7 @@
 using Microsoft.Extensions.Logging;
 
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace PaymentGateway.Application.Behaviors
 {
@@ -18,18 +19,52 @@ namespace PaymentGateway.Application.Behaviors
         }
 
 
+        //public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        //{
+        //    Stopwatch stopwatch = new();
+        //    _logger.LogInformation($"Handling {typeof(TRequest).Name}");
+        //    stopwatch.Start();
+
+        //    var response = await next();
+
+        //    stopwatch.Stop();
+
+        //    _logger.LogInformation($"Handled {typeof(TResponse).Name} in {stopwatch.ElapsedMilliseconds} ms");
+        //    stopwatch.Reset();
+
+        //    return response;
+        //}
+
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
-            Stopwatch stopwatch = new();
-            _logger.LogInformation($"Handling {typeof(TRequest).Name}");
-            stopwatch.Start();
+            var requestName = request.GetType().Name;
+            var requestGuid = Guid.NewGuid().ToString();
 
-            var response = await next();
+            var requestNameWithGuid = $"{requestName} [{requestGuid}]";
 
-            stopwatch.Stop();
+            _logger.LogInformation($"[START] {requestNameWithGuid}");
+            TResponse response;
 
-            _logger.LogInformation($"Handled {typeof(TResponse).Name} in {stopwatch.ElapsedMilliseconds} ms");
-            stopwatch.Reset();
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                try
+                {
+                    _logger.LogInformation($"[PROPS] {requestNameWithGuid} {JsonSerializer.Serialize(request)}");
+                }
+                catch (NotSupportedException)
+                {
+                    _logger.LogInformation($"[Serialization ERROR] {requestNameWithGuid} Could not serialize the request.");
+                }
+
+                response = await next();
+            }
+            finally
+            {
+                stopwatch.Stop();
+                _logger.LogInformation(
+                    $"[END] {requestNameWithGuid}; Execution time={stopwatch.ElapsedMilliseconds}ms");
+            }
 
             return response;
         }

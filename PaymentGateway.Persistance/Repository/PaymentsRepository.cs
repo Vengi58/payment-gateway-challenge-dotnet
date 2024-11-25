@@ -1,60 +1,45 @@
-﻿using PaymentGateway.Domain.Models;
+﻿using PaymentGateway.Domain.Enums;
+using PaymentGateway.Domain.Models;
 using PaymentGateway.Persistance.Entities;
+using PaymentGateway.Persistance.Mappings;
 using PaymentGateway.Services.Encryption;
 
 namespace PaymentGateway.Persistance.Repository;
 
-public class PaymentsRepository : IPaymentRepository
+public class PaymentsRepository(ICryptoService cryptoService) : IPaymentRepository
 {
-    private readonly ICryptoService _cryptoService;
-    public List<Payment> Payments = [];
+    private readonly ICryptoService _cryptoService = cryptoService;
+    internal List<Payment> Payments = [];
 
-    public PaymentsRepository(ICryptoService cryptoService)
+    public async Task<Guid> CreatePayment(CardDetails cardDetails, PaymentDetails paymentDetails)
     {
-        _cryptoService = cryptoService;
-    }
-
-    public Guid CreatePayment(CardDetails cardDetails, PaymentDetails paymentDetails)
-    {
-        Payment payment = new Payment()
+        (var p, var c, var s) = await GetPaymentById(paymentDetails.Id);
+        if (p != null && c != null)
         {
-            CardNumber = _cryptoService.Encrypt(cardDetails.CardNumber),
-            Cvv = _cryptoService.Encrypt(cardDetails.Cvv.ToString()),
-            ExpiryMonth = cardDetails.ExpiryMonth,
-            ExpiryYear = cardDetails.ExpiryYear,
-            Amount = paymentDetails.Amount,
-            Id = paymentDetails.Id ?? Guid.NewGuid()
-        };
+            return await Task.FromResult((Guid)paymentDetails.Id); //might be better to throw an exception and notify user that the payment already exists
+        }
+        Payment payment = (cardDetails, paymentDetails, PaymentStatus.Created).MapToPayment(_cryptoService.Encrypt);
+
         Payments.Add(payment);
-        return payment.Id;
+        return await Task.FromResult(payment.Id);
     }
 
-    Tuple<CardDetails, PaymentDetails> IPaymentRepository.GetPaymentById(Guid? paymentId)
+    public async Task<(CardDetails cardDetails, PaymentDetails paymentDetails, BankPaymentStatus bankPaymentStatus)> GetPaymentById(Guid? paymentId)
     {
-        if (paymentId == null)
-        {
-            return new(null, null);
-        }
-
         var payment = Payments.FirstOrDefault(p => p.Id.Equals(paymentId));
-        if (payment == null)
-        {
-            return new(null, null);
-        }
 
-        CardDetails cardDetails = new CardDetails()
-        {
-            CardNumber = _cryptoService.Decrypt(payment.CardNumber),
-            Cvv = Convert.ToInt32(_cryptoService.Decrypt(payment.Cvv)),
-            ExpiryMonth = payment.ExpiryMonth,
-            ExpiryYear = payment.ExpiryYear
-        };
-        PaymentDetails paymentDetails = new PaymentDetails()
-        {
-            Id = payment.Id,
-            Amount = payment.Amount,
-            Currency = payment.Currency
-        };
-        return new(cardDetails, paymentDetails);
+        if (payment == null) return (null, null, BankPaymentStatus.Rejected);
+
+        return new(payment.MapToCardDetails(_cryptoService.Decrypt), payment.MapToPaymentDetails(), payment.PaymentStatus.MapToBankPaymentStatus());
+    }
+
+    public async Task<(CardDetails? cardDetails, PaymentDetails paymentDetails)> UpdatePaymentStatusById(Guid? paymentId, BankPaymentStatus bankPaymentStatus)
+    {
+        var paymentIndex = Payments.FindIndex(p => p.Id.Equals(paymentId));
+        if (paymentIndex == -1) return (null, null);
+        var payment = Payments[paymentIndex];
+        Payments[paymentIndex] = Payments[paymentIndex] with { PaymentStatus = bankPaymentStatus.MapToPaymentStatus() };
+        return await Task.FromResult((Payments[paymentIndex].MapToCardDetails(_cryptoService.Decrypt), Payments[paymentIndex].MapToPaymentDetails()));
+
     }
 }

@@ -5,22 +5,22 @@ namespace PaymentGateway.Services.Encryption
 {
     public class RsaCryptoService : ICryptoService
     {
-        private RSA rsa;
+        private readonly RSA _rsa;
 
         public RsaCryptoService()
         {
-            rsa = RSA.Create();
+            _rsa = RSA.Create();
         }
 
         public string Decrypt(byte[] data)
         {
-            var decryptedBytes = rsa.Decrypt(data, RSAEncryptionPadding.Pkcs1);
+            var decryptedBytes = _rsa.Decrypt(data, RSAEncryptionPadding.Pkcs1);
             return Encoding.UTF8.GetString(decryptedBytes);
         }
 
         public byte[] Encrypt(string data)
         {
-            return rsa.Encrypt(Encoding.UTF8.GetBytes(data), RSAEncryptionPadding.Pkcs1);
+            return _rsa.Encrypt(Encoding.UTF8.GetBytes(data), RSAEncryptionPadding.Pkcs1);
         }
     }
 }

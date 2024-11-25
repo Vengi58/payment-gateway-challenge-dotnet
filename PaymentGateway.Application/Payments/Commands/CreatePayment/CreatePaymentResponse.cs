@@ -1,11 +1,6 @@
-﻿using System;
-using PaymentGateway.Api.Models;
+﻿using PaymentGateway.Domain.Enums;
 
 namespace PaymentGateway.Application.Payments.Commands.CreatePayment
 {
-    public class CreatePaymentResponse
-    {
-        public Guid PaymentId { get; set; }
-        public PaymentStatus Status { get; set; }
-    }
+    public sealed record CreatePaymentResponse(Guid PaymentId, BankPaymentStatus Status, string CardNumberLastFourDigits, int ExpiryMonth, int ExpiryYear, string Currency, int Amount) { }
 }

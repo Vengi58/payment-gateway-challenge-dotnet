@@ -1,13 +1,4 @@
 ﻿namespace PaymentGateway.Persistance.Entities
 {
-    public class Payment
-    {
-        public Guid Id { get; set; }
-        public byte[] CardNumber { get; set; }
-        public int ExpiryMonth { get; set; }
-        public int ExpiryYear { get; set; }
-        public byte[] Cvv { get; set; }
-        public string Currency { get; set; }
-        public int Amount { get; set; }
-    }
+    internal record Payment(Guid Id, byte[] CardNumber, int ExpiryYear, int ExpiryMonth, byte[] Cvv, string Currency, int Amount, PaymentStatus PaymentStatus) { }
 }
