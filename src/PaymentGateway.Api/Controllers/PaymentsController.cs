@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Api.Mappings;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
+using PaymentGateway.Application.Payments.Queries.GetPayment;
 using PaymentGateway.Domain.Enums;
+using PaymentGateway.Domain.Models;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -18,18 +20,25 @@ public class PaymentsController(IMediator mediator) : Controller
 {
     private readonly IMediator _mediator = mediator;
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<GetPaymentResponse?>> GetPaymentAsync([Required] Guid id, CancellationToken cancellationToken)
+    [HttpGet("{paymentId:guid}")]
+    public async Task<ActionResult<GetPaymentResponse?>> GetPaymentAsync(
+        [Required][FromHeader(Name = "merchant-id")] Guid merchantId,
+        [Required] Guid paymentId,
+        CancellationToken cancellationToken)
     {
-        GetPaymentResponse getPaymentResponse = (await _mediator.Send(new Application.Payments.Queries.GetPayment.GetPaymentQuery(id), cancellationToken)).MaptToGetPaymentResponse();
+        GetPaymentResponse getPaymentResponse = (await _mediator.Send(new GetPaymentQuery(paymentId, new Merchant(merchantId)), cancellationToken)).MaptToGetPaymentResponse();
 
         return ResponseByBankPaymentStatus(getPaymentResponse.Status, getPaymentResponse);
     }
 
     [HttpPost()]
-    public async Task<ActionResult<PostPaymentResponse?>> PostPaymentAsync([FromBody] PostPaymentRequest postPaymentRequest, [Optional][FromHeader(Name = "idempotency-key")] Guid? idempotencyKey, CancellationToken cancellationToken)
+    public async Task<ActionResult<PostPaymentResponse?>> PostPaymentAsync(
+        [Required][FromHeader(Name = "merchant-id")] Guid merchantId,
+        [Optional][FromHeader(Name = "idempotency-key")] Guid? idempotencyKey,
+        [FromBody] PostPaymentRequest postPaymentRequest,
+        CancellationToken cancellationToken)
     {
-        PostPaymentResponse createPaymentResponse = (await _mediator.Send(postPaymentRequest.MapToCreatePaymentCommand(idempotencyKey), cancellationToken)).MapToPostPaymentResponse();
+        PostPaymentResponse createPaymentResponse = (await _mediator.Send((postPaymentRequest, idempotencyKey, new Merchant(merchantId)).MapToCreatePaymentCommand(), cancellationToken)).MapToPostPaymentResponse();
 
         return ResponseByBankPaymentStatus(createPaymentResponse.Status, createPaymentResponse);
     }

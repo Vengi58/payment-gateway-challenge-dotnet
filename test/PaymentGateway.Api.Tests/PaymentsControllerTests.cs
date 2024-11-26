@@ -30,7 +30,9 @@ public class PaymentsControllerTests
     Mock<IBankSimulator> BankSimulatorMock;
     private readonly ICryptoService _cryptoService;
     HttpClient client;
-    private readonly PostPaymentRequest request;
+    private readonly PostPaymentRequest _request;
+    private readonly Guid _merchantGuid = Guid.Parse("47f729c1-c863-4403-ae2e-6e836bf44fee");
+
     public PaymentsControllerTests()
     {
         BankSimulatorMock = new Mock<IBankSimulator>();
@@ -48,7 +50,9 @@ public class PaymentsControllerTests
                 .AddSingleton<IBankSimulator>(BankSimulatorMock.Object)))
             .CreateClient();
 
-        request = new()
+        client.DefaultRequestHeaders.Add("merchant-id", _merchantGuid.ToString());
+
+        _request = new()
         {
             Amount = 100,
             CardNumber = "2222405343248877",
@@ -63,22 +67,22 @@ public class PaymentsControllerTests
     public async Task PostPayments_ValidPostPaymentRequest_CreatesPaymentSuccessfully()
     {
         //Arrange
-        BankCardDetails cardDetailsFull = new(request.CardNumber, request.ExpiryYear, request.ExpiryMonth, request.Cvv.ToString());
-        CardDetails cardDetails = new(_cryptoService.Encrypt(request.CardNumber), request.ExpiryYear, request.ExpiryMonth, _cryptoService.Encrypt(request.Cvv));
+        BankCardDetails cardDetailsFull = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
+        CardDetails cardDetails = new(_cryptoService.Encrypt(_request.CardNumber), _request.ExpiryYear, _request.ExpiryMonth, _cryptoService.Encrypt(_request.Cvv));
         BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
         // Act
 
         client.DefaultRequestHeaders.Add("idempotency-key", "95a1ddd5-b05f-4079-a737-1bb871600f39");
-        var response = await client.PostAsJsonAsync($"/api/Payments", request);
+        var response = await client.PostAsJsonAsync($"/api/Payments", _request);
         var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(paymentResponse);
-        Assert.Equal(request.Currency, paymentResponse!.Currency);
-        Assert.Equal(request.Amount, paymentResponse!.Amount);
-        Assert.Equal(request.ExpiryYear, paymentResponse!.ExpiryYear);
-        Assert.Equal(request.ExpiryMonth, paymentResponse!.ExpiryMonth);
+        Assert.Equal(_request.Currency, paymentResponse!.Currency);
+        Assert.Equal(_request.Amount, paymentResponse!.Amount);
+        Assert.Equal(_request.ExpiryYear, paymentResponse!.ExpiryYear);
+        Assert.Equal(_request.ExpiryMonth, paymentResponse!.ExpiryMonth);
         Assert.NotEmpty(paymentResponse!.CardNumberLastFourDigits);
         Assert.Equal(4, paymentResponse!.CardNumberLastFourDigits.Length);
         Assert.Equal(BankPaymentStatus.Authorized, paymentResponse!.Status);
@@ -91,23 +95,23 @@ public class PaymentsControllerTests
         string idKey = "95a1ddd5-b05f-4079-a737-1bb871600f39";
         Guid.TryParse(idKey, out Guid idempotencyKeyGuid);
 
-        BankCardDetails cardDetailsFull = new(request.CardNumber, request.ExpiryYear, request.ExpiryMonth, request.Cvv.ToString());
-        CardDetails cardDetails = new(_cryptoService.Encrypt(request.CardNumber), request.ExpiryYear, request.ExpiryMonth, _cryptoService.Encrypt(request.Cvv));
+        BankCardDetails cardDetailsFull = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
+        CardDetails cardDetails = new(_cryptoService.Encrypt(_request.CardNumber), _request.ExpiryYear, _request.ExpiryMonth, _cryptoService.Encrypt(_request.Cvv));
         BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
         client.DefaultRequestHeaders.Add("idempotency-key", idKey);
 
         // Act
-        var response = await client.PostAsJsonAsync($"/api/Payments", request);
+        var response = await client.PostAsJsonAsync($"/api/Payments", _request);
         var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(paymentResponse);
         Assert.Equal(idempotencyKeyGuid, paymentResponse!.Id);
-        Assert.Equal(request.Currency, paymentResponse!.Currency);
-        Assert.Equal(request.Amount, paymentResponse!.Amount);
-        Assert.Equal(request.ExpiryYear, paymentResponse!.ExpiryYear);
-        Assert.Equal(request.ExpiryMonth, paymentResponse!.ExpiryMonth);
+        Assert.Equal(_request.Currency, paymentResponse!.Currency);
+        Assert.Equal(_request.Amount, paymentResponse!.Amount);
+        Assert.Equal(_request.ExpiryYear, paymentResponse!.ExpiryYear);
+        Assert.Equal(_request.ExpiryMonth, paymentResponse!.ExpiryMonth);
         Assert.NotEmpty(paymentResponse!.CardNumberLastFourDigits);
         Assert.Equal(4, paymentResponse!.CardNumberLastFourDigits.Length);
         Assert.Equal(BankPaymentStatus.Authorized, paymentResponse!.Status);
@@ -177,11 +181,11 @@ public class PaymentsControllerTests
     public async Task GetPayments_ForExistingPayment_ReturnsPaymentSuccessfully()
     {
         //Arrange
-        BankCardDetails cardDetailsFull = new(request.CardNumber, request.ExpiryYear, request.ExpiryMonth, request.Cvv.ToString());
-        CardDetails cardDetails = new(_cryptoService.Encrypt(request.CardNumber), request.ExpiryYear, request.ExpiryMonth, _cryptoService.Encrypt(request.Cvv));
+        BankCardDetails cardDetailsFull = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
+        CardDetails cardDetails = new(_cryptoService.Encrypt(_request.CardNumber), _request.ExpiryYear, _request.ExpiryMonth, _cryptoService.Encrypt(_request.Cvv));
         BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
         // Act
-        var response = await client.PostAsJsonAsync($"/api/Payments", request);
+        var response = await client.PostAsJsonAsync($"/api/Payments", _request);
         var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();
 
 
@@ -189,19 +193,63 @@ public class PaymentsControllerTests
         var getPaymentResponse = await response.Content.ReadFromJsonAsync<GetPaymentResponse>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(request.Amount, getPaymentResponse!.Amount);
+        Assert.Equal(_request.Amount, getPaymentResponse!.Amount);
     }
 
     [Fact]
-    public async Task Returns404IfPaymentNotFound()
+    public async Task GetPayments_ForNonExistingPayment_Returns404NotFound()
+    {
+        //Arrange
+        BankCardDetails cardDetailsFull = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
+        CardDetails cardDetails = new(_cryptoService.Encrypt(_request.CardNumber), _request.ExpiryYear, _request.ExpiryMonth, _cryptoService.Encrypt(_request.Cvv));
+        BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
+        // Act
+        var response = await client.PostAsJsonAsync($"/api/Payments", _request);
+        var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();
+
+
+        response = await client.GetAsync($"/api/Payments/{Guid.NewGuid()}");
+        var getPaymentResponse = await response.Content.ReadFromJsonAsync<GetPaymentResponse>();
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetPayments_InvalidPaymentId_Returns404INotFound()
     {
         // Arrange
-        var webApplicationFactory = new WebApplicationFactory<PaymentsController>();
-        var client = webApplicationFactory.CreateClient();
         
         // Act
         var response = await client.GetAsync($"/api/Payments/{Guid.NewGuid()}");
         
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+
+    [Fact]
+    public async Task GetPayments_MissingMerchantIdHeaderParameter_Returns400BadRequest()
+    {
+        // Arrange
+        client.DefaultRequestHeaders.Remove("merchant-id");
+
+        // Act
+        var response = await client.GetAsync($"/api/Payments/{Guid.NewGuid()}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetPayments_InvalidMerchantIdHeaderParameter_Returns404NotFound()
+    {
+        // Arrange
+        client.DefaultRequestHeaders.Remove("merchant-id");
+        client.DefaultRequestHeaders.Add("merchant-id", "95a1ddd5-0000-4079-a737-1bb871600f39");
+
+        // Act
+        var response = await client.GetAsync($"/api/Payments/{Guid.NewGuid()}");
+
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

@@ -45,6 +45,18 @@ namespace PaymentGateway.Api.Middleware
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
                 await context.Response.WriteAsJsonAsync(problemDetails);
             }
+            catch (MerchantNotFoundException e)
+            {
+                var problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Type = "RequestFailure",
+                    Title = "Request error",
+                    Detail = e.Message
+                };
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                await context.Response.WriteAsJsonAsync(problemDetails);
+            }
             catch (Exception e)
             {
                 var problemDetails = new ProblemDetails

@@ -3,25 +3,27 @@
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Application.Payments.Commands.CreatePayment;
+using PaymentGateway.Domain.Models;
 
 namespace PaymentGateway.Api.Mappings
 {
     public static class RequestResponseMappings
     {
-        public static CreatePaymentCommand MapToCreatePaymentCommand(this PostPaymentRequest postPaymentRequest, Guid? idempotencyKey)
+        public static CreatePaymentCommand MapToCreatePaymentCommand(this (PostPaymentRequest postPaymentRequest, Guid? idempotencyKey, Merchant merchant) details)
         {
             return new CreatePaymentCommand(
-                idempotencyKey,
-                postPaymentRequest.Currency,
-                postPaymentRequest.Amount,
-                postPaymentRequest.CardNumber,
-                postPaymentRequest.ExpiryMonth,
-                postPaymentRequest.ExpiryYear,
-                postPaymentRequest.Cvv);
+                details.idempotencyKey,
+                details.postPaymentRequest.Currency,
+                details.postPaymentRequest.Amount,
+                details.postPaymentRequest.CardNumber,
+                details.postPaymentRequest.ExpiryMonth,
+                details.postPaymentRequest.ExpiryYear,
+                details.postPaymentRequest.Cvv,
+                details.merchant);
         }
 
 
-        public static PostPaymentResponse MapToPostPaymentResponse(this CreatePaymentResponse createPaymentResponse)
+        public static PostPaymentResponse MapToPostPaymentResponse(this CreatePaymentCommandResponse createPaymentResponse)
         {
             return new PostPaymentResponse()
             {
@@ -35,7 +37,7 @@ namespace PaymentGateway.Api.Mappings
             };
         }
 
-        public static GetPaymentResponse MaptToGetPaymentResponse(this Application.Payments.Queries.GetPayment.GetPaymentResponse getPaymentResponse) {
+        public static GetPaymentResponse MaptToGetPaymentResponse(this Application.Payments.Queries.GetPayment.GetPaymentQueryResponse getPaymentResponse) {
             return new GetPaymentResponse()
             {
                 Status = getPaymentResponse.Status,

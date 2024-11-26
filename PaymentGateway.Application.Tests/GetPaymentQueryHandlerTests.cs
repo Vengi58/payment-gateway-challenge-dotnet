@@ -18,9 +18,10 @@ namespace PaymentGateway.Application.Tests
         private readonly Mock<IBankSimulator> _bankSimulatorMock;
         private readonly Mock<IPaymentRepository> _paymentRepositoryMock;
 
-        private readonly CardDetails cardDetails;
-        private readonly Guid paymentId;
-        private readonly PaymentDetails paymentDetails;
+        private readonly CardDetails _cardDetails;
+        private readonly Guid _paymentId;
+        private readonly PaymentDetails _paymentDetails;
+        private readonly Merchant _merchant;
         public GetPaymentQueryHandlerTests()
         {
             _bankSimulatorMock = new Mock<IBankSimulator>();
@@ -28,9 +29,10 @@ namespace PaymentGateway.Application.Tests
             _cryptoService = new RsaCryptoService();
             _getPaymentQueryHandler = new GetPaymentQueryHandler(_paymentRepositoryMock.Object, _cryptoService);
 
-            cardDetails = new(_cryptoService.Encrypt("2222405343248877"), 2025, 4, _cryptoService.Encrypt("123"));
-            paymentId = Guid.NewGuid();
-            paymentDetails = new(paymentId, "GBP", 100);
+            _cardDetails = new(_cryptoService.Encrypt("2222405343248877"), 2025, 4, _cryptoService.Encrypt("123"));
+            _paymentId = Guid.NewGuid();
+            _paymentDetails = new(_paymentId, "GBP", 100);
+            _merchant = new(Guid.Parse("47f729c1-c863-4403-ae2e-6e836bf44fee"));
         }
 
         [Fact]
@@ -38,15 +40,15 @@ namespace PaymentGateway.Application.Tests
         {
             //Arrange
             _paymentRepositoryMock
-                .Setup(_ => _.GetPaymentById(paymentId))
-                .ReturnsAsync((cardDetails, paymentDetails, BankPaymentStatus.Authorized));
+                .Setup(_ => _.GetPaymentById(_paymentId, _merchant))
+                .ReturnsAsync((_cardDetails, _paymentDetails, BankPaymentStatus.Authorized));
 
             //Act
-            var getPaymentResponse = await _getPaymentQueryHandler.Handle(new(paymentId), new CancellationToken());
+            var getPaymentResponse = await _getPaymentQueryHandler.Handle(new(_paymentId, _merchant), new CancellationToken());
 
             //Assert
-            _paymentRepositoryMock.Verify(_ => _.UpdatePaymentStatusById(paymentId, It.IsAny<BankPaymentStatus>()), Times.Never);
-            _paymentRepositoryMock.Verify(_ => _.CreatePayment(It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>()), Times.Never);
+            _paymentRepositoryMock.Verify(_ => _.UpdatePaymentStatusById(_paymentId, It.IsAny<BankPaymentStatus>(), _merchant), Times.Never);
+            _paymentRepositoryMock.Verify(_ => _.CreatePayment(It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>(), _merchant), Times.Never);
         }
 
         [Fact]
@@ -56,15 +58,15 @@ namespace PaymentGateway.Application.Tests
             Guid paymentId = Guid.NewGuid();
 
             _paymentRepositoryMock
-                .Setup(_ => _.GetPaymentById(paymentId))
+                .Setup(_ => _.GetPaymentById(paymentId, _merchant))
                 .ReturnsAsync((It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>(), BankPaymentStatus.Rejected));
 
             //Act
             //Assert
-            var exc = await Assert.ThrowsAsync<PaymentNotFoundException>(async () => await _getPaymentQueryHandler.Handle(new(paymentId), new CancellationToken()));
+            var exc = await Assert.ThrowsAsync<PaymentNotFoundException>(async () => await _getPaymentQueryHandler.Handle(new(paymentId, _merchant), new CancellationToken()));
             Assert.Equal($"Payment with payment id {paymentId} not found.", exc.Message);
-            _paymentRepositoryMock.Verify(_ => _.UpdatePaymentStatusById(paymentId, It.IsAny<BankPaymentStatus>()), Times.Never);
-            _paymentRepositoryMock.Verify(_ => _.CreatePayment(It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>()), Times.Never);
+            _paymentRepositoryMock.Verify(_ => _.UpdatePaymentStatusById(paymentId, It.IsAny<BankPaymentStatus>(), _merchant), Times.Never);
+            _paymentRepositoryMock.Verify(_ => _.CreatePayment(It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>(), _merchant), Times.Never);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace PaymentGateway.Application.Mappings
 {
     internal static class RequestResponseMappings
     {
-        public static CreatePaymentResponse MapToCreateCreatePaymentResponse(this (Guid paymentId, BankPaymentStatus status, CardDetails cardDetails, PaymentDetails paymentDetails) details, Func<byte[], string> decrypt)
+        public static CreatePaymentCommandResponse MapToCreateCreatePaymentResponse(this (Guid paymentId, BankPaymentStatus status, CardDetails cardDetails, PaymentDetails paymentDetails) details, Func<byte[], string> decrypt)
         {
             return new(
                 details.paymentId,
@@ -19,7 +19,7 @@ namespace PaymentGateway.Application.Mappings
                 details.paymentDetails.Amount
                 );
         }
-        public static GetPaymentResponse MapToCreateGetPaymentResponse(this (Guid paymentId, BankPaymentStatus status, CardDetails cardDetails, PaymentDetails paymentDetails) details, Func<byte[], string> decrypt)
+        public static GetPaymentQueryResponse MapToCreateGetPaymentResponse(this (Guid paymentId, BankPaymentStatus status, CardDetails cardDetails, PaymentDetails paymentDetails) details, Func<byte[], string> decrypt)
         {
             return new(
                 details.paymentId,
@@ -38,7 +38,7 @@ namespace PaymentGateway.Application.Mappings
         }
         public static PaymentDetails MapToPaymentDetails(this CreatePaymentCommand createPaymentCommand)
         {
-            return new(createPaymentCommand.Id, createPaymentCommand.Currency, createPaymentCommand.Amount);
+            return new(createPaymentCommand.PaymentId, createPaymentCommand.Currency, createPaymentCommand.Amount);
         }
         public static BankCardDetails MapToCardDetailsFull(this CreatePaymentCommand createPaymentCommand)
         {
