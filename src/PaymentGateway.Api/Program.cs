@@ -1,15 +1,15 @@
-using System.Reflection;
-
 using FluentValidation;
 
 using MediatR;
 
 using PaymentGateway.Api.Middleware;
-using PaymentGateway.Api.Services.BankSimulator;
-using PaymentGateway.Persistance.Repository;
+using PaymentGateway.Application.Repository;
 using PaymentGateway.Services.BankSimulator;
 using PaymentGateway.Services.Encryption;
 using PaymentGateway.Application.Behaviors;
+using PaymentGateway.Application.Services.BankSimulator;
+using PaymentGateway.Application.Encryption;
+using PaymentGateway.Persistance.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 

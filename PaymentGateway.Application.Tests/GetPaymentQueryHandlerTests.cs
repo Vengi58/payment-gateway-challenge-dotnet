@@ -1,34 +1,42 @@
 ﻿using Moq;
-using PaymentGateway.Api.Services.BankSimulator;
+
+using PaymentGateway.Application.Encryption;
 using PaymentGateway.Application.Exceptions;
 using PaymentGateway.Application.Payments.Queries.GetPayment;
+using PaymentGateway.Application.Services.BankSimulator;
 using PaymentGateway.Domain.Enums;
 using PaymentGateway.Domain.Models;
-using PaymentGateway.Persistance.Repository;
+using PaymentGateway.Application.Repository;
+using PaymentGateway.Services.Encryption;
 
 namespace PaymentGateway.Application.Tests
 {
     public class GetPaymentQueryHandlerTests
     {
         readonly GetPaymentQueryHandler _getPaymentQueryHandler;
+        private readonly ICryptoService _cryptoService;
         private readonly Mock<IBankSimulator> _bankSimulatorMock;
         private readonly Mock<IPaymentRepository> _paymentRepositoryMock;
 
+        private readonly CardDetails cardDetails;
+        private readonly Guid paymentId;
+        private readonly PaymentDetails paymentDetails;
         public GetPaymentQueryHandlerTests()
         {
             _bankSimulatorMock = new Mock<IBankSimulator>();
             _paymentRepositoryMock = new Mock<IPaymentRepository>();
-            _getPaymentQueryHandler = new GetPaymentQueryHandler(_paymentRepositoryMock.Object);
+            _cryptoService = new RsaCryptoService();
+            _getPaymentQueryHandler = new GetPaymentQueryHandler(_paymentRepositoryMock.Object, _cryptoService);
+
+            cardDetails = new(_cryptoService.Encrypt("2222405343248877"), 2025, 4, _cryptoService.Encrypt("123"));
+            paymentId = Guid.NewGuid();
+            paymentDetails = new(paymentId, "GBP", 100);
         }
 
         [Fact]
         public async Task GetPaymentHandler_ValidPatmentID_ReturnsPaymentDetailsSuccessfully()
         {
             //Arrange
-            Guid paymentId = Guid.NewGuid();
-            CardDetails cardDetails = new("2222405343248877", 2025, 4, 123);
-            PaymentDetails paymentDetails = new(paymentId, "GBP", 100);
-
             _paymentRepositoryMock
                 .Setup(_ => _.GetPaymentById(paymentId))
                 .ReturnsAsync((cardDetails, paymentDetails, BankPaymentStatus.Authorized));

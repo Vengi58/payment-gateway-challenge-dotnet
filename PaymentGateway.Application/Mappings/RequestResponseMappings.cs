@@ -7,24 +7,24 @@ namespace PaymentGateway.Application.Mappings
 {
     internal static class RequestResponseMappings
     {
-        public static CreatePaymentResponse MapToCreateCreatePaymentResponse(this (Guid paymentId, BankPaymentStatus status, CardDetails cardDetails, PaymentDetails paymentDetails) details)
+        public static CreatePaymentResponse MapToCreateCreatePaymentResponse(this (Guid paymentId, BankPaymentStatus status, CardDetails cardDetails, PaymentDetails paymentDetails) details, Func<byte[], string> decrypt)
         {
             return new(
                 details.paymentId,
                 details.status,
-                details.cardDetails.CardNumber,
+                decrypt(details.cardDetails.CardNumberLastFourDigits),
                 details.cardDetails.ExpiryMonth,
                 details.cardDetails.ExpiryYear,
                 details.paymentDetails.Currency,
                 details.paymentDetails.Amount
                 );
         }
-        public static GetPaymentResponse MapToCreateGetPaymentResponse(this (Guid paymentId, BankPaymentStatus status, CardDetails cardDetails, PaymentDetails paymentDetails) details)
+        public static GetPaymentResponse MapToCreateGetPaymentResponse(this (Guid paymentId, BankPaymentStatus status, CardDetails cardDetails, PaymentDetails paymentDetails) details, Func<byte[], string> decrypt)
         {
             return new(
                 details.paymentId,
                 details.status,
-                details.cardDetails.CardNumber,
+                decrypt(details.cardDetails.CardNumberLastFourDigits),
                 details.cardDetails.ExpiryMonth,
                 details.cardDetails.ExpiryYear,
                 details.paymentDetails.Currency,
@@ -32,13 +32,17 @@ namespace PaymentGateway.Application.Mappings
                 );
         }
 
-        public static CardDetails MapToCardDetails(this CreatePaymentCommand createPaymentCommand)
+        public static CardDetails MapToCardDetails(this CreatePaymentCommand createPaymentCommand, Func<string, byte[]> encrypt)
         {
-            return new(createPaymentCommand.CardNumber, createPaymentCommand.ExpiryYear, createPaymentCommand.ExpiryMonth, createPaymentCommand.Cvv);
+            return new(encrypt(createPaymentCommand.CardNumber), createPaymentCommand.ExpiryYear, createPaymentCommand.ExpiryMonth, encrypt(createPaymentCommand.Cvv.ToString()));
         }
         public static PaymentDetails MapToPaymentDetails(this CreatePaymentCommand createPaymentCommand)
         {
             return new(createPaymentCommand.Id, createPaymentCommand.Currency, createPaymentCommand.Amount);
+        }
+        public static BankCardDetails MapToCardDetailsFull(this CreatePaymentCommand createPaymentCommand)
+        {
+            return new(createPaymentCommand.CardNumber, createPaymentCommand.ExpiryYear, createPaymentCommand.ExpiryMonth, createPaymentCommand.Cvv.ToString());
         }
     }
 }

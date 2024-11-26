@@ -1,4 +1,4 @@
 ﻿namespace PaymentGateway.Domain.Models
 {
-    public record CardDetails(string CardNumber, int ExpiryYear, int ExpiryMonth, int Cvv) { }
+    public record CardDetails(byte[] CardNumberLastFourDigits, int ExpiryYear, int ExpiryMonth, byte[] Cvv) { }
 }

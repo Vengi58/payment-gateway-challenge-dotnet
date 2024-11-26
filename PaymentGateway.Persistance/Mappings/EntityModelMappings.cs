@@ -6,14 +6,13 @@ namespace PaymentGateway.Persistance.Mappings
 {
     internal static class EntityModelMappings
     {
-        public static Payment MapToPayment(this (CardDetails cardDetails, PaymentDetails paymentDetails, PaymentStatus paymentStatus) details, Func<string, byte[]> encrypt)
+        public static Payment MapToPayment(this (CardDetails cardDetails, PaymentDetails paymentDetails, PaymentProcessingStatus paymentStatus) details)
         {
             return new(
             details.paymentDetails.Id ?? Guid.NewGuid(),
-            encrypt(details.cardDetails.CardNumber),
+            details.cardDetails.CardNumberLastFourDigits,
             details.cardDetails.ExpiryYear, 
             details.cardDetails.ExpiryMonth,
-            encrypt(details.cardDetails.Cvv.ToString()),
             details.paymentDetails.Currency,
             details.paymentDetails.Amount,
             details.paymentStatus);
@@ -24,37 +23,37 @@ namespace PaymentGateway.Persistance.Mappings
             return new(payment.Id, payment.Currency, payment.Amount);
         }
 
-        public static CardDetails MapToCardDetails(this Payment payment, Func<byte[], string> decrypt)
+        public static CardDetails MapToCardDetails(this Payment payment)
         {
             return new(
-                decrypt(payment.CardNumber),
+                payment.CardNumberLastFour,
                 payment.ExpiryYear,
                 payment.ExpiryMonth,
-                Convert.ToInt32(decrypt(payment.Cvv)));
+                default);
         }
 
-        public static PaymentStatus MapToPaymentStatus(this BankPaymentStatus bankPaymentStatus)
+        public static PaymentProcessingStatus MapToPaymentStatus(this BankPaymentStatus bankPaymentStatus)
         {
             switch (bankPaymentStatus)
             {
                 case BankPaymentStatus.Authorized:
-                    return PaymentStatus.Completed;
+                    return PaymentProcessingStatus.FinishedProcessing;
                 case BankPaymentStatus.Declined:
                 case BankPaymentStatus.Rejected:
-                    return PaymentStatus.Failed;
+                    return PaymentProcessingStatus.FailedProcessing;
                 default:
-                    return PaymentStatus.Created;
+                    return PaymentProcessingStatus.Processing;
             }
         }
 
-        public static BankPaymentStatus MapToBankPaymentStatus(this PaymentStatus paymentStatus)
+        public static BankPaymentStatus MapToBankPaymentStatus(this PaymentProcessingStatus paymentStatus)
         {
             switch (paymentStatus)
             {
-                case PaymentStatus.Created:
-                case PaymentStatus.Completed:
+                case PaymentProcessingStatus.Processing:
+                case PaymentProcessingStatus.FinishedProcessing:
                     return BankPaymentStatus.Authorized;
-                case PaymentStatus.Failed:
+                case PaymentProcessingStatus.FailedProcessing:
                     return BankPaymentStatus.Declined;
                 default:
                     return BankPaymentStatus.Rejected;

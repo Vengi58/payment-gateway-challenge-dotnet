@@ -1,8 +1,7 @@
 ﻿using PaymentGateway.Domain.Enums;
 using PaymentGateway.Domain.Models;
-using PaymentGateway.Persistance.Entities;
 
-namespace PaymentGateway.Persistance.Repository;
+namespace PaymentGateway.Application.Repository;
 
 public interface IPaymentRepository
 {
