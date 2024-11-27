@@ -19,7 +19,7 @@ namespace PaymentGateway.Persistance.Repository
         public async Task<Guid> CreatePayment(CardDetails cardDetails, PaymentDetails paymentDetails, Merchant merchant)
         {
             var merchantEntity = await _paymentsDbContext.Merchants.FindAsync(merchant.MerchantId);
-            if (merchantEntity == null) { throw new MerchantNotFoundException(); }
+            if (merchantEntity == null) { throw new MerchantNotFoundException($"Merchant {merchant.MerchantId} not found."); }
             PaymentEntity paymentEntity = new()
             {
                 Amount = paymentDetails.Amount,
@@ -39,7 +39,7 @@ namespace PaymentGateway.Persistance.Repository
 
         public async Task<(CardDetails cardDetails, PaymentDetails paymentDetails, BankPaymentStatus bankPaymentStatus)> GetPaymentById(Guid paymentId, Merchant merchant)
         {
-            var payments = await TryGetMerchantPayments(merchant) ?? throw new PaymentNotFoundException();
+            var payments = await TryGetMerchantPayments(merchant) ?? throw new PaymentNotFoundException($"Payment {paymentId} for merchant {merchant.MerchantId} not found.");
             var payment = payments.ToList().FirstOrDefault(p => p.PaymentId.Equals(paymentId));
             return payment == null
                 ? throw new PaymentNotFoundException()

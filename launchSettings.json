@@ -1,0 +1,17 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "paymentgateway.api": "StartDebugging"
+      },
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "BANK_SIMULATOR_ADDRESS": "http://localhost:8080",
+        "INIT_TEST_DATA": "true"
+      }
+    }
+  }
+}

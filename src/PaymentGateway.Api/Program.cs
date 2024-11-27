@@ -12,9 +12,9 @@ using PaymentGateway.Application.Encryption;
 using PaymentGateway.Persistance.Repository;
 using PaymentGateway.Persistance;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Configuration;
+
+string bankSimulatorAddress = Environment.GetEnvironmentVariable("BANK_SIMULATOR_ADDRESS");
+bool generateTestData = "true".Equals(Environment.GetEnvironmentVariable("INIT_TEST_DATA"));
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,15 +25,20 @@ builder.Services.AddControllers();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 builder.Services.AddValidatorsFromAssembly(PaymentGateway.Application.AssemblyReference.Assembly);
-//builder.Services.AddSingleton<IPaymentRepository, PaymentsRepository>();
-//builder.Services.AddDbContext<PaymentsDbContext>(options =>
-//        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+//Test doubles PaymentRepository
+//builder.Services.AddSingleton<IPaymentRepository, PaymentsRepository>();
+
+//Postgres db context
+//builder.Services.AddSingleton<PaymentsDbContext>(ctx => new(
+//    new DbContextOptionsBuilder<PaymentsDbContext>().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).Options));
+
+//Inemmory db context
 builder.Services.AddSingleton<PaymentsDbContext>(ctx => new(
-    new DbContextOptionsBuilder<PaymentsDbContext>().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).Options));
-//builder.Services.AddSingleton<PaymentsDbContext>(ctx => new(new DbContextOptionsBuilder<PaymentsDbContext>().UseInMemoryDatabase("PaymentsDb").Options));
+    new DbContextOptionsBuilder<PaymentsDbContext>().UseInMemoryDatabase("PaymentsDb").Options));
+
 builder.Services.AddSingleton<IPaymentRepository, PaymentsInMemoryRepository>();
-builder.Services.AddSingleton<IBankSimulator>(b => new BankSimulator(Environment.GetEnvironmentVariable("BANK_SIMULATOR_ADDRESS")));
+builder.Services.AddSingleton<IBankSimulator>(b => new BankSimulator(bankSimulatorAddress));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -43,7 +48,7 @@ builder.Services.AddSingleton<ICryptoService, RsaCryptoService>();
 
 var app = builder.Build();
 //app.Services.GetService<PaymentsDbContext>().Database.Migrate();
-if("true".Equals(Environment.GetEnvironmentVariable("INIT_TEST_DATA"))) DataGenerator.Initialize(app.Services);
+if(generateTestData) DataGenerator.Initialize(app.Services);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
