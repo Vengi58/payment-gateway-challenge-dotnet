@@ -8,6 +8,7 @@ using PaymentGateway.Domain.Enums;
 using PaymentGateway.Domain.Models;
 using PaymentGateway.Application.Repository;
 using PaymentGateway.Services.Encryption;
+using Microsoft.Extensions.Logging;
 
 namespace PaymentGateway.Application.Tests
 {
@@ -17,6 +18,7 @@ namespace PaymentGateway.Application.Tests
         private readonly ICryptoService _cryptoService;
         private readonly Mock<IBankSimulator> _bankSimulatorMock;
         private readonly Mock<IPaymentRepository> _paymentRepositoryMock;
+        private readonly Mock<ILogger<GetPaymentQueryHandler>> _loggerMock;
 
         private readonly CardDetails _cardDetails;
         private readonly Guid _paymentId;
@@ -27,7 +29,8 @@ namespace PaymentGateway.Application.Tests
             _bankSimulatorMock = new Mock<IBankSimulator>();
             _paymentRepositoryMock = new Mock<IPaymentRepository>();
             _cryptoService = new RsaCryptoService();
-            _getPaymentQueryHandler = new GetPaymentQueryHandler(_paymentRepositoryMock.Object, _cryptoService);
+            _loggerMock = new Mock<ILogger<GetPaymentQueryHandler>>();
+            _getPaymentQueryHandler = new GetPaymentQueryHandler(_paymentRepositoryMock.Object, _cryptoService, _loggerMock.Object);
 
             _cardDetails = new(_cryptoService.Encrypt("2222405343248877"), 2025, 4, _cryptoService.Encrypt("123"));
             _paymentId = Guid.NewGuid();
@@ -59,7 +62,7 @@ namespace PaymentGateway.Application.Tests
 
             _paymentRepositoryMock
                 .Setup(_ => _.GetPaymentById(paymentId, _merchant))
-                .ReturnsAsync((It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>(), BankPaymentStatus.Rejected));
+                .ThrowsAsync(new PaymentNotFoundException($"Payment with payment id {paymentId} not found."));
 
             //Act
             //Assert

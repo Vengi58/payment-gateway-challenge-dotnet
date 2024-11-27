@@ -8,6 +8,8 @@ using PaymentGateway.Domain.Models;
 using PaymentGateway.Application.Repository;
 using PaymentGateway.Services.Encryption;
 using PaymentGateway.Application.Exceptions;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace PaymentGateway.Application.Tests
 {
@@ -17,6 +19,7 @@ namespace PaymentGateway.Application.Tests
         private readonly ICryptoService _cryptoService;
         private readonly Mock<IBankSimulator> _bankSimulatorMock;
         private readonly Mock<IPaymentRepository> _paymentRepositoryMock;
+        private readonly Mock<ILogger<CreatePaymentHandler>> _loggerMock;
 
         private readonly BankCardDetails _bankCardDetails;
         private readonly CardDetails _cardDetails;
@@ -28,7 +31,8 @@ namespace PaymentGateway.Application.Tests
             _cryptoService = new RsaCryptoService();
             _bankSimulatorMock = new Mock<IBankSimulator>();
             _paymentRepositoryMock = new Mock<IPaymentRepository>();
-            _createPaymentHandler = new CreatePaymentHandler(_paymentRepositoryMock.Object, _bankSimulatorMock.Object, _cryptoService);
+            _loggerMock = new Mock<ILogger<CreatePaymentHandler>>();
+            _createPaymentHandler = new CreatePaymentHandler(_paymentRepositoryMock.Object, _bankSimulatorMock.Object, _cryptoService, _loggerMock.Object);
 
             _bankCardDetails = new("2222405343248877", 2025, 4, "123");
             _cardDetails = new(_cryptoService.Encrypt(_bankCardDetails.CardNumber), _bankCardDetails.ExpiryYear, _bankCardDetails.ExpiryMonth, _cryptoService.Encrypt(_bankCardDetails.Cvv));
