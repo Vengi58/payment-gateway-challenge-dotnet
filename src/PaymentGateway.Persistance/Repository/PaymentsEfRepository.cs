@@ -42,7 +42,7 @@ namespace PaymentGateway.Persistance.Repository
             var payments = await TryGetMerchantPayments(merchant) ?? throw new PaymentNotFoundException($"Payment {paymentId} for merchant {merchant.MerchantId} not found.");
             var payment = payments.ToList().FirstOrDefault(p => p.PaymentId.Equals(paymentId));
             return payment == null
-                ? throw new PaymentNotFoundException()
+                ? throw new PaymentNotFoundException($"Payment {paymentId} for merchant {merchant.MerchantId} not found.")
                 : (new CardDetails(payment.CardNumberLastFour, payment.ExpiryYear, payment.ExpiryMonth, default),
                 new PaymentDetails(payment.PaymentId, payment.Currency, payment.Amount),
                 payment.PaymentProcessingStatus.MapToBankPaymentStatus());

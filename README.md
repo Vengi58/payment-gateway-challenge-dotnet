@@ -344,7 +344,7 @@ returns HTTP 404
   "type": "RequestFailure",
   "title": "Request error",
   "status": 400,
-  "detail": "Exception of type 'PaymentGateway.Application.Exceptions.PaymentNotFoundException' was thrown."
+  "detail": "Payment b38eacca-0000-0000-bbe6-ffba1ed3958b for merchant 47f729c1-c863-4403-ae2e-6e836bf44fee not found."
 }
 ```
 
