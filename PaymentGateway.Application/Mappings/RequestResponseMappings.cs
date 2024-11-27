@@ -40,7 +40,7 @@ namespace PaymentGateway.Application.Mappings
         {
             return new(createPaymentCommand.PaymentId, createPaymentCommand.Currency, createPaymentCommand.Amount);
         }
-        public static BankCardDetails MapToCardDetailsFull(this CreatePaymentCommand createPaymentCommand)
+        public static BankCardDetails MapToBankCardDetails(this CreatePaymentCommand createPaymentCommand)
         {
             return new(createPaymentCommand.CardNumber, createPaymentCommand.ExpiryYear, createPaymentCommand.ExpiryMonth, createPaymentCommand.Cvv.ToString());
         }

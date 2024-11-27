@@ -67,9 +67,9 @@ public class PaymentsControllerTests
     public async Task PostPayments_ValidPostPaymentRequest_CreatesPaymentSuccessfully()
     {
         //Arrange
-        BankCardDetails cardDetailsFull = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
+        BankCardDetails bankCardDetails = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
         CardDetails cardDetails = new(_cryptoService.Encrypt(_request.CardNumber), _request.ExpiryYear, _request.ExpiryMonth, _cryptoService.Encrypt(_request.Cvv));
-        BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
+        BankSimulatorMock.Setup(_ => _.PostPayment(bankCardDetails, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
         // Act
 
         client.DefaultRequestHeaders.Add("idempotency-key", "95a1ddd5-b05f-4079-a737-1bb871600f39");
@@ -95,9 +95,9 @@ public class PaymentsControllerTests
         string idKey = "95a1ddd5-b05f-4079-a737-1bb871600f39";
         Guid.TryParse(idKey, out Guid idempotencyKeyGuid);
 
-        BankCardDetails cardDetailsFull = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
+        BankCardDetails bankCardDetails = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
         CardDetails cardDetails = new(_cryptoService.Encrypt(_request.CardNumber), _request.ExpiryYear, _request.ExpiryMonth, _cryptoService.Encrypt(_request.Cvv));
-        BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
+        BankSimulatorMock.Setup(_ => _.PostPayment(bankCardDetails, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
         client.DefaultRequestHeaders.Add("idempotency-key", idKey);
 
         // Act
@@ -131,9 +131,9 @@ public class PaymentsControllerTests
             Cvv = 123
         };
 
-        BankCardDetails cardDetailsFull = new(request.CardNumber, request.ExpiryYear, request.ExpiryMonth, request.Cvv.ToString());
+        BankCardDetails bankCardDetails = new(request.CardNumber, request.ExpiryYear, request.ExpiryMonth, request.Cvv.ToString());
         CardDetails cardDetails = new(_cryptoService.Encrypt(request.CardNumber), request.ExpiryYear, request.ExpiryMonth, _cryptoService.Encrypt(request.Cvv));
-        BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Declined);
+        BankSimulatorMock.Setup(_ => _.PostPayment(bankCardDetails, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Declined);
         // Act
         var response = await client.PostAsJsonAsync($"/api/Payments", request);
         var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();
@@ -164,9 +164,9 @@ public class PaymentsControllerTests
             Cvv = 123
         };
 
-        BankCardDetails cardDetailsFull = new(request.CardNumber, request.ExpiryYear, request.ExpiryMonth, request.Cvv.ToString());
+        BankCardDetails bankCardDetails = new(request.CardNumber, request.ExpiryYear, request.ExpiryMonth, request.Cvv.ToString());
         CardDetails cardDetails = new(_cryptoService.Encrypt(request.CardNumber), request.ExpiryYear, request.ExpiryMonth, _cryptoService.Encrypt(request.Cvv));
-        BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Declined);
+        BankSimulatorMock.Setup(_ => _.PostPayment(bankCardDetails, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Declined);
         // Act
         var response = await client.PostAsJsonAsync($"/api/Payments", request);
         var paymentResponse = await response.Content.ReadFromJsonAsync<ProblemDetails>();
@@ -181,9 +181,9 @@ public class PaymentsControllerTests
     public async Task GetPayments_ForExistingPayment_ReturnsPaymentSuccessfully()
     {
         //Arrange
-        BankCardDetails cardDetailsFull = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
+        BankCardDetails bankCardDetails = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
         CardDetails cardDetails = new(_cryptoService.Encrypt(_request.CardNumber), _request.ExpiryYear, _request.ExpiryMonth, _cryptoService.Encrypt(_request.Cvv));
-        BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
+        BankSimulatorMock.Setup(_ => _.PostPayment(bankCardDetails, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
         // Act
         var response = await client.PostAsJsonAsync($"/api/Payments", _request);
         var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();
@@ -200,9 +200,9 @@ public class PaymentsControllerTests
     public async Task GetPayments_ForNonExistingPayment_Returns404NotFound()
     {
         //Arrange
-        BankCardDetails cardDetailsFull = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
+        BankCardDetails bankCardDetails = new(_request.CardNumber, _request.ExpiryYear, _request.ExpiryMonth, _request.Cvv.ToString());
         CardDetails cardDetails = new(_cryptoService.Encrypt(_request.CardNumber), _request.ExpiryYear, _request.ExpiryMonth, _cryptoService.Encrypt(_request.Cvv));
-        BankSimulatorMock.Setup(_ => _.PostPayment(cardDetailsFull, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
+        BankSimulatorMock.Setup(_ => _.PostPayment(bankCardDetails, It.IsAny<PaymentDetails>())).ReturnsAsync(BankPaymentStatus.Authorized);
         // Act
         var response = await client.PostAsJsonAsync($"/api/Payments", _request);
         var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();

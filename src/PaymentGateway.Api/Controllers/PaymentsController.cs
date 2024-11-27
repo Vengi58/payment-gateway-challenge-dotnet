@@ -43,7 +43,6 @@ public class PaymentsController(IMediator mediator) : Controller
         return ResponseByBankPaymentStatus(createPaymentResponse.Status, createPaymentResponse);
     }
 
-
     private ActionResult<T?> ResponseByBankPaymentStatus<T>(BankPaymentStatus bankPaymentStatus, T response)
     {
         return bankPaymentStatus switch

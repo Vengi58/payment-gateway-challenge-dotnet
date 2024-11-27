@@ -7,6 +7,7 @@ using PaymentGateway.Domain.Enums;
 using PaymentGateway.Domain.Models;
 using PaymentGateway.Application.Repository;
 using PaymentGateway.Services.Encryption;
+using PaymentGateway.Application.Exceptions;
 
 namespace PaymentGateway.Application.Tests
 {
@@ -17,7 +18,7 @@ namespace PaymentGateway.Application.Tests
         private readonly Mock<IBankSimulator> _bankSimulatorMock;
         private readonly Mock<IPaymentRepository> _paymentRepositoryMock;
 
-        private readonly BankCardDetails _cardDetailsFull;
+        private readonly BankCardDetails _bankCardDetails;
         private readonly CardDetails _cardDetails;
         private readonly Guid _paymentId;
         private readonly PaymentDetails _paymentDetails;
@@ -29,26 +30,26 @@ namespace PaymentGateway.Application.Tests
             _paymentRepositoryMock = new Mock<IPaymentRepository>();
             _createPaymentHandler = new CreatePaymentHandler(_paymentRepositoryMock.Object, _bankSimulatorMock.Object, _cryptoService);
 
-            _cardDetailsFull = new("2222405343248877", 2025, 4, "123");
-            _cardDetails = new(_cryptoService.Encrypt(_cardDetailsFull.CardNumber), _cardDetailsFull.ExpiryYear, _cardDetailsFull.ExpiryMonth, _cryptoService.Encrypt(_cardDetailsFull.Cvv));
+            _bankCardDetails = new("2222405343248877", 2025, 4, "123");
+            _cardDetails = new(_cryptoService.Encrypt(_bankCardDetails.CardNumber), _bankCardDetails.ExpiryYear, _bankCardDetails.ExpiryMonth, _cryptoService.Encrypt(_bankCardDetails.Cvv));
             _paymentId = Guid.NewGuid();
             _paymentDetails = new(_paymentId, "GBP", 100);
             _merchant = new(Guid.Parse("47f729c1-c863-4403-ae2e-6e836bf44fee"));
         }
 
         [Fact]
-        public async Task CreatePaymentHandler_AuthorizedPayment_PersistedWitCompleted()
+        public async Task CreatePaymentHandler_AuthorizedPayment_PersistedWithCompleted()
         {
             //Arrange
-            //CardDetails cardDetails = new(_cryptoService.Encrypt("2222405343248877"), 2025,4, _cryptoService.Encrypt("123"));
-            //PaymentDetails paymentDetails = new(paymentId, "GBP", 100);
-
             _bankSimulatorMock
-                .Setup(_ => _.PostPayment(_cardDetailsFull, _paymentDetails))
+                .Setup(_ => _.PostPayment(_bankCardDetails, _paymentDetails))
                 .ReturnsAsync(BankPaymentStatus.Authorized);
             _paymentRepositoryMock
                 .Setup(_ => _.CreatePayment(It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>(), It.IsAny<Merchant>()))
                 .ReturnsAsync(_paymentId);
+            _paymentRepositoryMock
+                .Setup(_ => _.GetPaymentById(_paymentId, _merchant))
+                .ThrowsAsync(new PaymentNotFoundException());
             _paymentRepositoryMock
                 .Setup(_ => _.UpdatePaymentStatusById(_paymentId, BankPaymentStatus.Authorized, _merchant))
                 .ReturnsAsync((_cardDetails, _paymentDetails));
@@ -76,11 +77,14 @@ namespace PaymentGateway.Application.Tests
             //Arrange
 
             _bankSimulatorMock
-                .Setup(_ => _.PostPayment(_cardDetailsFull, _paymentDetails))
+                .Setup(_ => _.PostPayment(_bankCardDetails, _paymentDetails))
                 .ReturnsAsync(BankPaymentStatus.Declined);
             _paymentRepositoryMock
                 .Setup(_ => _.CreatePayment(It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>(), It.IsAny<Merchant>()))
                 .ReturnsAsync(_paymentId);
+            _paymentRepositoryMock
+                .Setup(_ => _.GetPaymentById(_paymentId, _merchant))
+                .ThrowsAsync(new PaymentNotFoundException());
             _paymentRepositoryMock
                 .Setup(_ => _.UpdatePaymentStatusById(_paymentId, BankPaymentStatus.Declined, _merchant))
                 .ReturnsAsync((_cardDetails, _paymentDetails));

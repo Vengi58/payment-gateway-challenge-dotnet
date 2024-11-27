@@ -16,7 +16,11 @@
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:7092;http://localhost:5067",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "BANK_SIMULATOR_ADDRESS": "http://localhost:8080",
+        "INIT_TEST_DATA": "true",
+        "POSTGRES_HOST_AUTH_METHOD" :"scram-sha-256",
+        "POSTGRES_INITDB_ARGS":"--auth-host=scram-sha-256"
       }
     },
     "IIS Express": {

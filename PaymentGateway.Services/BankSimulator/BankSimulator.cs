@@ -10,6 +10,12 @@ namespace PaymentGateway.Services.BankSimulator
     public class BankSimulator : IBankSimulator
     {
         readonly HttpClient _httpClient = new();
+        private readonly string _bankSimulatorApiAddress;
+
+        public BankSimulator(string bankSimulatorApiAddress)
+        {
+            _bankSimulatorApiAddress = bankSimulatorApiAddress;
+        }
 
         public async Task<BankPaymentStatus> PostPayment(BankCardDetails cardDetails, PaymentDetails paymentDetails)
         {
@@ -21,7 +27,7 @@ namespace PaymentGateway.Services.BankSimulator
                 paymentDetails.Amount,
                 cardDetails.Cvv);
             using HttpResponseMessage httpResponseMessage = await _httpClient.PostAsJsonAsync(
-                "http://localhost:8080/payments",
+                $"{_bankSimulatorApiAddress}/payments",
                 request);
 
             var postPaymentResponse = await httpResponseMessage.Content.ReadFromJsonAsync<PostBankPaymentResponse>();

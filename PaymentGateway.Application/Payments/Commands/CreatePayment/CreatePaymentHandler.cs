@@ -25,9 +25,12 @@ namespace PaymentGateway.Application.Payments.Commands.CreatePayment
                     var (card, payment, status) = await _paymentRepository.GetPaymentById((Guid)createPaymentCommand.PaymentId, createPaymentCommand.Merchant);
                     return ((Guid)createPaymentCommand.PaymentId, status, card, payment).MapToCreateCreatePaymentResponse(_cryptoService.Decrypt);
                 }
-                catch (Exception e) when (e is not PaymentNotFoundException)
+                catch (Exception e)
                 {
-                    throw;
+                    if (e is not PaymentNotFoundException)
+                    {
+                        throw;
+                    }
                 }
             }
 
@@ -36,7 +39,7 @@ namespace PaymentGateway.Application.Payments.Commands.CreatePayment
 
             Guid paymentId = await _paymentRepository.CreatePayment(cardDetails, paymentDetails, createPaymentCommand.Merchant);
 
-            var bankPaymentStatusResult = await _bankSimulator.PostPayment(createPaymentCommand.MapToCardDetailsFull(), paymentDetails);
+            var bankPaymentStatusResult = await _bankSimulator.PostPayment(createPaymentCommand.MapToBankCardDetails(), paymentDetails);
 
             (cardDetails, paymentDetails) = await _paymentRepository.UpdatePaymentStatusById(paymentId, bankPaymentStatusResult, createPaymentCommand.Merchant);
 

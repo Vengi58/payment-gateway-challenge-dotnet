@@ -1,6 +1,4 @@
-﻿using MediatR.NotificationPublishers;
-
-using PaymentGateway.Api.Models.Requests;
+﻿using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Application.Payments.Commands.CreatePayment;
 using PaymentGateway.Domain.Models;
