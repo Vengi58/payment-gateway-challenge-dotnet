@@ -49,35 +49,17 @@ The software is designed following the Clean Architecture principles, where the 
 
 Project structure dependencies based on this:
 
-**Api** -> Applicataion, Persistance, Services
-
-**Persistance** -> Application
-
-**Services** -> Applicaation
-
-**Application** -> Domain
-
-**Domain**
+![1732744441755](image/README/1732744441755.png)
 
 #### Tech Stack
 
-[C# ](https://learn.microsoft.com/en-us/dotnet/csharp/)
+Language, framework [C# ](https://learn.microsoft.com/en-us/dotnet/csharp/)- [Microsoft .NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) - [Microsoft .Net Core](https://dotnet.microsoft.com/en-us/download) - [ASP.Net Core](https://dotnet.microsoft.com/en-us/apps/aspnet)
 
-[Microsoft .NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+Tools [Entity Framework Core 9](https://learn.microsoft.com/en-us/ef/core/providers/in-memory/?tabs=dotnet-core-cli)  - [MediatR](https://github.com/jbogard/MediatR) - [xUnit](https://xunit.net)
 
-[Microsoft .Net Core](https://dotnet.microsoft.com/en-us/download)
+Hosting [Docker](https://www.docker.com/)
 
-[ASP.Net Core](https://dotnet.microsoft.com/en-us/apps/aspnet)
-
-[Entity Framework Core 9](https://learn.microsoft.com/en-us/ef/core/providers/in-memory/?tabs=dotnet-core-cli)
-
-[MediatR](https://github.com/jbogard/MediatR)
-
-[Docker](https://www.docker.com/)
-
-[xUnit](https://xunit.net)
-
-#### Api
+#### API
 
 [PaymentGateway.Api](https://github.com/Vengi58/payment-gateway-challenge-dotnet/tree/main/src/PaymentGateway.Api)
 
@@ -87,10 +69,10 @@ Provides REST API endpoints for Creating a new payment or retrieveing payment de
 
 **Header Parameters:**
 
-| Name        | Type | Description                                                                                                                          |
-| ----------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| merchant-id | Guid | Required. The implementation assusmes a separate user management and authentication and only takes care about request authorization. |
-| paymentId   | Guid | Required. The merchant must provide this as a payment identification.                                                                |
+| Name        | Type | Description                                                                                                                         |
+| ----------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| merchant-id | Guid | Required. The implementation assumes a separate user management and authentication and only takes care about request authorization. |
+| paymentId   | Guid | Required. The merchant must provide this as a payment identification.                                                               |
 
 **Returns:**
 
@@ -122,7 +104,7 @@ Http 502 - Request processing internal error
 
 | Name            | Type | Description                                                                                                                                |
 | --------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| merchant-id     | Guid | Required. The implementation assusmes a separate user management and authentication and only takes care about request authorization.       |
+| merchant-id     | Guid | Required. The implementation assumes a separate user management and authentication and only takes care about request authorization.        |
 | idempotency-key | Guid | Optional. The merchant could provide this as an idempotency key, otherwise a paymentId would be generated for each Create Payment request. |
 
 **Request body:**
@@ -180,15 +162,15 @@ Two implementations provided for the repository interface.
 
 **BankSimulator**: Provides implementation for connecting to the Bank Simulator. It is a simple implementation to wrap the interaction with the Bank Simulator REST API.
 
-**RsaCryptoService**: Provides implementation for data encryption services, which is needed to securely store sensitive data. Uses a simple RSA encryption. Ideally an external encryption provider service should be used, or even better, the sensitive data should be stored in external trusted key stores.
+**RsaCryptoService**: Provides implementation for data encryption services, which is needed to securely store sensitive data. Uses a simple RSA encryption. Ideally an or assymetric key encryption, an external encryption provider or service should be used, or even better, the sensitive data should be stored in external trusted key stores.
 
 #### Application
 
 [PaymentGateway.Application](https://github.com/Vengi58/payment-gateway-challenge-dotnet/tree/main/src/PaymentGateway.Application)
 
-The Application used MediatR's PipelineBehavior to chain request validation and logging and RequestHandler for request handling delegation.
+The Application uses MediatR's PipelineBehavior to chain request validation and logging and RequestHandler for request handling delegation.
 
-To try to avoid double spending the application maintains an internal payment request status, initially persisting the payment in the database as Processing and updates the states based on the response of the Bank Simulator to Completed or Failed. If another payment request with the same payment id is submitted by the merchant while the request is in Processing status it won't reporcesss it again.
+To try to avoid double spending the application maintains an internal payment request status, initially persisting the payment in the database as Processing and updates the states based on the response of the Bank Simulator to FinishedProcessing or FailedProcessing. If another payment request with the same payment id is submitted by the merchant while the request is in Processing status it won't reporcesss it again.
 
 **Behaviors:**
 
@@ -210,6 +192,10 @@ PaymentNotFoundException thrown when the payment for the provided payment id is 
 
 Provides object mapping between different model classes.
 
+Logging:
+
+The Application logs the request data and the processing time. It also logs within the request handlers, logging request processing statuses. Sensitive data in the requests like card number or CVV are erased from logging!
+
 #### Domain
 
 [PaymentGateway.Domain](https://github.com/Vengi58/payment-gateway-challenge-dotnet/tree/main/src/PaymentGateway.Domain)
@@ -220,6 +206,8 @@ Provides the model classes and enums used by the Application.
 
 #### Implementation Details
 
+TBD. Not part of the documentation
+
 #### Testing
 
 The solution contains xUnit tests in the /test folder to test the Payments API and the Application itself as well. The tests cover various scenarios for valid and invalid request data.
@@ -228,21 +216,32 @@ The solution contains xUnit tests in the /test folder to test the Payments API a
 
 The application requires the following environment variables to be set:
 
-ASPNETCORE_ENVIRONMENT=Development
+```console
 
-ASPNETCORE_HTTP_PORTS=5005
+ASPNETCORE_ENVIRONMENT=Development # development mode enables swagger UI
 
-BANK_SIMULATOR_ADDRESS=http://localhost:8080 <--- the address where the Bank Simulator app is running.
+ASPNETCORE_HTTP_PORTS=5005 # the port that the application runs on
 
-INIT_TEST_DATA=true <--- the application could provide initial test data if required.
+BANK_SIMULATOR_ADDRESS=http://localhost:8080 # the address where the Bank Simulator app is running.
+
+INIT_TEST_DATA=true # the application could provide initial test data if required.
+
+```
 
 #### Run from your preferred IDE
 
 Clone the repository https://github.com/Vengi58/payment-gateway-challenge-dotnet.git
 
-Set the environments variable inside or outside your project.
 
-Run the PaymentGateway.Api. Once it starts it will provide a swagger documentation page to easily test the application. Swagger page is generated only if the ASPNETCORE_ENVIRONMENT is set to Development
+Run the Bank Simulator docker container:
+
+```console
+docker-compose -f .\docker-compose_bank_simulator up
+```
+
+Set the environments variable inside or outside your project. Make sure that the Bank Simulor endpoint is set correctly for the BANK_SIMULATOR_ADDRESS environment variable.
+
+Run the PaymentGateway.Api. Once it starts it will provide a swagger documentation page to easily test the application. Swagger page is generated only if the ASPNETCORE_ENVIRONMENT is set to Development.
 
 #### Run as a docker container
 
@@ -323,7 +322,7 @@ returns HTTP 404
 {
   "type": "RequestFailure",
   "title": "Request error",
-  "status": 400,
+  "status": 404,
   "detail": "Merchant 47f729c1-0000-0000-ae2e-6e836bf44fee not found."
 }
 ```
@@ -343,7 +342,7 @@ returns HTTP 404
 {
   "type": "RequestFailure",
   "title": "Request error",
-  "status": 400,
+  "status": 404,
   "detail": "Payment b38eacca-0000-0000-bbe6-ffba1ed3958b for merchant 47f729c1-c863-4403-ae2e-6e836bf44fee not found."
 }
 ```

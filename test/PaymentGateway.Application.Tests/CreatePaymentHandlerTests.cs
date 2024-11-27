@@ -74,9 +74,8 @@ namespace PaymentGateway.Application.Tests
             _paymentRepositoryMock.Verify(_ => _.UpdatePaymentStatusById(_paymentId, BankPaymentStatus.Authorized, _merchant), Times.Once);
         }
 
-
         [Fact]
-        public async Task CreatePaymentHandler_DeclinedPayment_PersistedWithDeclined()
+        public async Task CreatePaymentHandler_DeclinedPayment_ReturnsDeclined()
         {
             //Arrange
 
@@ -107,6 +106,38 @@ namespace PaymentGateway.Application.Tests
 
             //Assert
             _paymentRepositoryMock.Verify(_ => _.UpdatePaymentStatusById(_paymentId, BankPaymentStatus.Declined, _merchant), Times.Once);
+            Assert.Equal(BankPaymentStatus.Declined, createPaymentResponse.Status);
+            Assert.Equal(_paymentId, createPaymentResponse.PaymentId);
+        }
+
+
+        [Fact]
+        public async Task CreatePaymentHandler_InvalidMerchant_ThrowsMerchantNotFoundException()
+        {
+            //Arrange
+            var invalidMerchant = _merchant with { MerchantId = Guid.NewGuid() };
+            _bankSimulatorMock
+                .Setup(_ => _.PostPayment(_bankCardDetails, _paymentDetails))
+                .ReturnsAsync(BankPaymentStatus.Declined);
+            _paymentRepositoryMock
+                .Setup(_ => _.CreatePayment(It.IsAny<CardDetails>(), It.IsAny<PaymentDetails>(), It.IsAny<Merchant>()))
+                .ReturnsAsync(_paymentId);
+            _paymentRepositoryMock
+                .Setup(_ => _.GetPaymentById(_paymentId, invalidMerchant))
+                .ThrowsAsync(new MerchantNotFoundException("Merchant not found"));
+
+            //Act
+            //Assert
+            await Assert.ThrowsAsync<MerchantNotFoundException>(async () => await _createPaymentHandler.Handle(new(
+                _paymentId,
+                _paymentDetails.Currency,
+                _paymentDetails.Amount,
+                _cryptoService.Decrypt(_cardDetails.CardNumberLastFourDigits),
+                _cardDetails.ExpiryMonth,
+                _cardDetails.ExpiryYear,
+                Convert.ToInt32(_cryptoService.Decrypt(_cardDetails.Cvv)),
+                invalidMerchant),
+                new CancellationToken()));
         }
     }
 }

@@ -41,7 +41,7 @@ namespace PaymentGateway.Api.Middleware
             {
                 var problemDetails = new ProblemDetails
                 {
-                    Status = StatusCodes.Status400BadRequest,
+                    Status = StatusCodes.Status404NotFound,
                     Type = "RequestFailure",
                     Title = "Request error",
                     Detail = e.Message
@@ -55,7 +55,7 @@ namespace PaymentGateway.Api.Middleware
             {
                 var problemDetails = new ProblemDetails
                 {
-                    Status = StatusCodes.Status400BadRequest,
+                    Status = StatusCodes.Status404NotFound,
                     Type = "RequestFailure",
                     Title = "Request error",
                     Detail = e.Message
