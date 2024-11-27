@@ -11,7 +11,7 @@ services:
         source: ./imposters
         target: /imposters
   paymentgateway.api:
-    image: ${DOCKER_REGISTRY-}xpaymentgatewayapi:v1
+    image: ${DOCKER_REGISTRY-}paymentgatewayapi:v1
     build:
       context: .
       dockerfile: src/PaymentGateway.Api/Dockerfile
