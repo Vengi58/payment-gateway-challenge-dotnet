@@ -1,12 +1,15 @@
-﻿using FluentValidation;
+﻿using System.Text.Json;
+
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application.Exceptions;
 
 namespace PaymentGateway.Api.Middleware
 {
-    public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
+    public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         private readonly RequestDelegate _next = next;
+        private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
 
         public async Task InvokeAsync(HttpContext context)
         {
@@ -31,6 +34,7 @@ namespace PaymentGateway.Api.Middleware
 
                 context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
 
+                _logger.LogError(JsonSerializer.Serialize(problemDetails));
                 await context.Response.WriteAsJsonAsync(problemDetails);
             }
             catch (PaymentNotFoundException e)
@@ -43,6 +47,8 @@ namespace PaymentGateway.Api.Middleware
                     Detail = e.Message
                 };
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
+
+                _logger.LogError(JsonSerializer.Serialize(problemDetails));
                 await context.Response.WriteAsJsonAsync(problemDetails);
             }
             catch (MerchantNotFoundException e)
@@ -55,6 +61,8 @@ namespace PaymentGateway.Api.Middleware
                     Detail = e.Message
                 };
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
+
+                _logger.LogError(JsonSerializer.Serialize(problemDetails));
                 await context.Response.WriteAsJsonAsync(problemDetails);
             }
             catch (Exception e)
@@ -67,6 +75,8 @@ namespace PaymentGateway.Api.Middleware
                     Detail = e.Message
                 };
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+                _logger.LogError(JsonSerializer.Serialize(problemDetails));
                 await context.Response.WriteAsJsonAsync(problemDetails);
             }
         }

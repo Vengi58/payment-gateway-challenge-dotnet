@@ -27,14 +27,19 @@ namespace PaymentGateway.Persistance
                 PaymentId = Guid.Parse("b38eacca-a23e-4988-bbe6-ffba1ed3958b"),
                 PaymentProcessingStatus = PaymentProcessingStatus.FinishedProcessing
             };
-            MerchantEntity merchantEntity = new()
+
+            paymentsDbContext.Payments.Add(paymentEntity);
+
+            paymentsDbContext.Merchants.Add(new()
             {
                 MerchantId = Guid.Parse("47f729c1-c863-4403-ae2e-6e836bf44fee"),
                 Payments = [paymentEntity]
-            };
-
-            paymentsDbContext.Payments.Add(paymentEntity);
-            paymentsDbContext.Merchants.Add(merchantEntity);
+            });
+            paymentsDbContext.Merchants.Add(new()
+            {
+                MerchantId = Guid.Parse("cc6afe80-e0c2-478d-a50a-18d68c918352"),
+                Payments = []
+            });
             paymentsDbContext.SaveChanges();
         }
     }

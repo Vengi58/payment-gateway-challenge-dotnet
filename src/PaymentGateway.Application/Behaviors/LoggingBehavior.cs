@@ -2,6 +2,8 @@
 
 using Microsoft.Extensions.Logging;
 
+using PaymentGateway.Application.Payments.Commands.CreatePayment;
+
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -18,23 +20,6 @@ namespace PaymentGateway.Application.Behaviors
             _logger = logger;
         }
 
-
-        //public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-        //{
-        //    Stopwatch stopwatch = new();
-        //    _logger.LogInformation($"Handling {typeof(TRequest).Name}");
-        //    stopwatch.Start();
-
-        //    var response = await next();
-
-        //    stopwatch.Stop();
-
-        //    _logger.LogInformation($"Handled {typeof(TResponse).Name} in {stopwatch.ElapsedMilliseconds} ms");
-        //    stopwatch.Reset();
-
-        //    return response;
-        //}
-
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var requestName = request.GetType().Name;
@@ -50,7 +35,15 @@ namespace PaymentGateway.Application.Behaviors
             {
                 try
                 {
-                    _logger.LogInformation($"[PROPS] {requestNameWithGuid} {JsonSerializer.Serialize(request)}");
+                    if (request!= null && request.GetType() == typeof(CreatePaymentCommand))
+                    {
+                        var createPaymentCommand = (request as CreatePaymentCommand) with { CardNumber = "**** ***** ***** ****", Cvv = 0};
+                        _logger.LogInformation($"[PROPS] {requestNameWithGuid} {JsonSerializer.Serialize(createPaymentCommand)}");
+                    }
+                    else 
+                    {
+                        _logger.LogInformation($"[PROPS] {requestNameWithGuid} {JsonSerializer.Serialize(request)}");
+                    }
                 }
                 catch (NotSupportedException)
                 {

@@ -18,6 +18,9 @@ bool generateTestData = "true".Equals(Environment.GetEnvironmentVariable("INIT_T
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Add services to the container.
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(PaymentGateway.Application.AssemblyReference.Assembly));
 
