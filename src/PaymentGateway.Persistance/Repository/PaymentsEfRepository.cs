@@ -7,11 +7,11 @@ using PaymentGateway.Persistance.Mappings;
 
 namespace PaymentGateway.Persistance.Repository
 {
-    public class PaymentsInMemoryRepository : IPaymentRepository
+    public class PaymentsEfRepository : IPaymentRepository
     {
         private readonly PaymentsDbContext _paymentsDbContext;
 
-        public PaymentsInMemoryRepository(PaymentsDbContext paymentsDbContext)
+        public PaymentsEfRepository(PaymentsDbContext paymentsDbContext)
         {
             _paymentsDbContext = paymentsDbContext;
         }

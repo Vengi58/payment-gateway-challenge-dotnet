@@ -40,7 +40,7 @@ builder.Services.AddValidatorsFromAssembly(PaymentGateway.Application.AssemblyRe
 builder.Services.AddSingleton<PaymentsDbContext>(ctx => new(
     new DbContextOptionsBuilder<PaymentsDbContext>().UseInMemoryDatabase("PaymentsDb").Options));
 
-builder.Services.AddSingleton<IPaymentRepository, PaymentsInMemoryRepository>();
+builder.Services.AddSingleton<IPaymentRepository, PaymentsEfRepository>();
 builder.Services.AddSingleton<IBankSimulator>(b => new BankSimulator(bankSimulatorAddress));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
