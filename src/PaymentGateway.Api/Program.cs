@@ -10,8 +10,8 @@ using PaymentGateway.Application.Behaviors;
 using PaymentGateway.Application.Services.BankSimulator;
 using PaymentGateway.Application.Encryption;
 using PaymentGateway.Persistance.Repository;
-using PaymentGateway.Persistance;
 using Microsoft.EntityFrameworkCore;
+using PaymentGateway.Persistance;
 
 string bankSimulatorAddress = Environment.GetEnvironmentVariable("BANK_SIMULATOR_ADDRESS");
 bool generateTestData = "true".Equals(Environment.GetEnvironmentVariable("INIT_TEST_DATA"));

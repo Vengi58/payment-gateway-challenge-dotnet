@@ -18,9 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PaymentGateway.Application\PaymentGateway.Application.csproj" />
-    <ProjectReference Include="..\PaymentGateway.Persistance\PaymentGateway.Persistance.csproj" />
-    <ProjectReference Include="..\PaymentGateway.Services\PaymentGateway.Services.csproj" />
+    <ProjectReference Include="..\..\src\PaymentGateway.Application\PaymentGateway.Application.csproj" />
+    <ProjectReference Include="..\..\src\PaymentGateway.Persistance\PaymentGateway.Persistance.csproj" />
+    <ProjectReference Include="..\..\src\PaymentGateway.Services\PaymentGateway.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>
