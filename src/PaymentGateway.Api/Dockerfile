@@ -12,10 +12,10 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/PaymentGateway.Api/PaymentGateway.Api.csproj", "src/PaymentGateway.Api/"]
-COPY ["PaymentGateway.Application/PaymentGateway.Application.csproj", "PaymentGateway.Application/"]
-COPY ["PaymentGateway.Domain/PaymentGateway.Domain.csproj", "PaymentGateway.Domain/"]
-COPY ["PaymentGateway.Persistance/PaymentGateway.Persistance.csproj", "PaymentGateway.Persistance/"]
-COPY ["PaymentGateway.Services/PaymentGateway.Services.csproj", "PaymentGateway.Services/"]
+COPY ["src/PaymentGateway.Application/PaymentGateway.Application.csproj", "PaymentGateway.Application/"]
+COPY ["src/PaymentGateway.Domain/PaymentGateway.Domain.csproj", "PaymentGateway.Domain/"]
+COPY ["src/PaymentGateway.Persistance/PaymentGateway.Persistance.csproj", "PaymentGateway.Persistance/"]
+COPY ["src/PaymentGateway.Services/PaymentGateway.Services.csproj", "PaymentGateway.Services/"]
 RUN dotnet restore "./src/PaymentGateway.Api/PaymentGateway.Api.csproj"
 COPY . .
 WORKDIR "/src/src/PaymentGateway.Api"

@@ -232,7 +232,6 @@ INIT_TEST_DATA=true # the application could provide initial test data if require
 
 Clone the repository https://github.com/Vengi58/payment-gateway-challenge-dotnet.git
 
-
 Run the Bank Simulator docker container:
 
 ```console
@@ -242,6 +241,12 @@ docker-compose -f .\docker-compose_bank_simulator up
 Set the environments variable inside or outside your project. Make sure that the Bank Simulor endpoint is set correctly for the BANK_SIMULATOR_ADDRESS environment variable.
 
 Run the PaymentGateway.Api. Once it starts it will provide a swagger documentation page to easily test the application. Swagger page is generated only if the ASPNETCORE_ENVIRONMENT is set to Development.
+
+The application would startup in a new browser and redirect to the the Swagger page:
+
+```console
+https://localhost:7092/swagger/index.html
+```
 
 #### Run as a docker container
 
@@ -267,6 +272,11 @@ Run the following command to create your containers:
 
 ```console
 docker-compose -f .\docker-compose.yml up
+```
+The Bank Simulator and the paplication would startup.  Open a browser and navigate to the the Swagger page:
+
+```console
+https://localhost:5005/swagger/index.html
 ```
 
 The above mentioned environment variables are configued in the docker-compose.yml file
